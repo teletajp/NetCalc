@@ -1,0 +1,2 @@
+#pragma once
+#define NC_SERVER_VERSION "@PROJECT_VERSION@"
