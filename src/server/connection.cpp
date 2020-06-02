@@ -3,6 +3,9 @@
 #include <vector>
 #include <errno.h>
 #include <fmt/format.h>
+#include <list>
+#include <algorithm>
+#include <functional>
 #define printNotice(msg) fmt::print(stdout, "[NOTICE] CLIENT {}: {}\n", info_, msg)
 #define printError(msg) fmt::print(stderr, "[ERROR] CLIENT {}: {}\n", info_, msg)
 namespace brct
@@ -21,11 +24,12 @@ public:
     ~Impl();
     Connection::ErrorCode receive();
     Connection::ErrorCode send(const std::string &data);
-    bool check(const std::string& msg);
+    bool parse();
     int fd_;
     std::string info_;
     uint8_t rcv_buf_[RECV_BUF_SIZE];
     std::string msg_buf_;
+    std::list<std::string> commands_;
     Status status_;
     std::function<void (std::vector<uint8_t>&, const std::string &)> processor_;
 };
@@ -59,9 +63,28 @@ Connection::ErrorCode Connection::Impl::receive()
     }
     if (rc == 0)
         return Connection::ErrorCode::PeerCloseConnection;
-    send(std::string((char*)rcv_buf_, rc));
-    //msg_buf_.insert(msg_buf_.end(), rcv_buf_, rcv_buf_ + rc);
-    
+    try{ msg_buf_.insert(msg_buf_.end(), rcv_buf_, rcv_buf_ + rc);}
+    catch(const std::exception &ex)
+    {
+        printError(fmt::format("receive EXCEPTION {}", ex.what()));
+        send("Internal server error.");
+    };
+    //rtrim
+    msg_buf_.erase(std::find_if(msg_buf_.rbegin(), msg_buf_.rend(), [](const char &ch ){return !std::isspace(ch);}).base(), msg_buf_.end());
+    if (msg_buf_.size() >= RECV_BUF_SIZE)
+    {
+        auto err_msg = fmt::format("Command {}... too big (max len:{}", msg_buf_.substr(16), RECV_BUF_SIZE);
+        printError(err_msg);
+        send(err_msg);
+    }
+    if (msg_buf_.back() == '=' && parse())
+    {
+    //TODO process()
+        for (const auto& command: commands_)
+            send(fmt::format("{} = OK", command));
+        commands_.clear();
+    }
+    msg_buf_.clear();
     return Connection::ErrorCode::OK;
 }
 Connection::ErrorCode Connection::Impl::send(const std::string &data)
@@ -88,6 +111,31 @@ Connection::ErrorCode Connection::Impl::send(const std::string &data)
     }
     printNotice(fmt::format("Send data: {}", data));
     return Connection::ErrorCode::OK;
+}
+bool Connection::Impl::parse()
+{
+    std::string command; command.reserve(64);
+    for(const auto& ch : msg_buf_)
+    {
+        if (ch == ',' && !command.empty())
+        {
+            printNotice(fmt::format("Detect command {}.", command));
+            commands_.emplace_back(command);
+            command.clear();
+        }
+        else if (ch >= '(' && ch <= '9')  command.push_back(ch);
+        else if (std::isspace(ch)) continue;
+        else if (ch == '=') break;
+        else
+        {
+            commands_.clear();
+            send(fmt::format("Invalid symbol {} in command {}", ch, msg_buf_));
+            return false;
+        }
+    }
+    printNotice(fmt::format("Detect command {}.", command));
+    commands_.emplace_back(command);
+    return true;
 }
 Connection::Connection(int fd, const std::string &info):
 pimpl_(std::make_unique<Impl>(fd, info))
