@@ -26,7 +26,7 @@ elseif (UNIX)
     set (MY_OS "unix")
     add_compile_options(-Wall -Wextra -Wno-misleading-indentation)
 endif (MSVC)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 14)
 find_package(fmt CONFIG REQUIRED)
 add_subdirectory("src")
 

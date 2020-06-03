@@ -29,9 +29,9 @@ public:
     std::string info_;
     uint8_t rcv_buf_[RECV_BUF_SIZE];
     std::string msg_buf_;
-    std::list<std::string> commands_;
+    Calculator::ExpressionList commands_;
     Status status_;
-    std::function<void (std::vector<uint8_t>&, const std::string &)> processor_;
+    std::function<bool (Calculator::ExpressionList &)> processor_;
 };
 
 Connection::Impl::Impl(int fd, const std::string &info):
@@ -77,14 +77,16 @@ Connection::ErrorCode Connection::Impl::receive()
         printError(err_msg);
         send(err_msg);
     }
-    if (msg_buf_.back() == '=' && parse())
-    {
-    //TODO process()
-        for (const auto& command: commands_)
-            send(fmt::format("{} = OK", command));
-        commands_.clear();
+    if (msg_buf_.back() == '=')
+    {//msg complite
+        if (parse())
+        {
+            if (processor_ && processor_(commands_)) printNotice("processor return true.");
+            else printError("processor return false.");
+        }
+        msg_buf_.clear();
     }
-    msg_buf_.clear();
+    
     return Connection::ErrorCode::OK;
 }
 Connection::ErrorCode Connection::Impl::send(const std::string &data)
@@ -120,7 +122,7 @@ bool Connection::Impl::parse()
         if (ch == ',' && !command.empty())
         {
             printNotice(fmt::format("Detect command {}.", command));
-            commands_.emplace_back(command);
+            commands_.emplace_back(fd_,command);
             command.clear();
         }
         else if (ch >= '(' && ch <= '9')  command.push_back(ch);
@@ -134,7 +136,7 @@ bool Connection::Impl::parse()
         }
     }
     printNotice(fmt::format("Detect command {}.", command));
-    commands_.emplace_back(command);
+    commands_.emplace_back(fd_, command);
     return true;
 }
 Connection::Connection(int fd, const std::string &info):
@@ -163,7 +165,7 @@ const std::string & Connection::getInfo() const
 {
     return pimpl_->info_;
 }
-void Connection::setProcessor(const std::function<void (std::vector<uint8_t>&, const std::string &)> &processor)
+void Connection::setProcessor(const std::function<bool (Calculator::ExpressionList &)> &processor)
 {
     pimpl_->processor_ = processor;
 }

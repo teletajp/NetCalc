@@ -3,6 +3,7 @@
 #include <memory>
 #include <functional>
 #include <vector>
+#include "calculator.h"
 namespace logger{class ILogger;}
 namespace brct
 {
@@ -27,7 +28,7 @@ public:
     ErrorCode receive();
     ErrorCode send(const std::string &data);
     const std::string &getInfo() const;
-    void setProcessor(const std::function<void (std::vector<uint8_t>&, const std::string &)> &processor);
+    void setProcessor(const std::function<bool (Calculator::ExpressionList &)> &processor);
 private:
     class Impl;
     std::unique_ptr<Impl> pimpl_;

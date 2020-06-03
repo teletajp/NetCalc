@@ -4,6 +4,7 @@
 #include <memory>
 #include <functional>
 #include <vector>
+#include "calculator.h"
 namespace brct
 {
 class TcpServer: public running::IRunnable
@@ -17,9 +18,10 @@ public:
     int onWrite(const int fd);
     int onError(const int fd, const std::string &error_message);
     void run(const std::atomic_bool &terminate) override;
-    void setProcessor(std::function<void (std::vector<uint8_t>&, const std::string &)> &&processor);
+    void setProcessor(std::function<bool (Calculator::ExpressionList&)> &&processor);
+    void send(int fd, std::string&& data);
 private:
-    std::function<void (std::vector<uint8_t>&, const std::string &)>processor_;
+    std::function<bool (Calculator::ExpressionList&)>processor_;
     TcpServer(const TcpServer&) = delete;
     TcpServer(TcpServer&&) = delete;
     TcpServer& operator= (const TcpServer&) = delete;

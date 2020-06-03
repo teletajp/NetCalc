@@ -2,11 +2,11 @@ project(nc_server VERSION 1.0.0.1 LANGUAGES CXX)
 configure_file("version.h.in" "${CMAKE_CURRENT_SOURCE_DIR}/version.h")
 
 add_executable(${PROJECT_NAME})
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_14)
 
 target_compile_options(${PROJECT_NAME}
 PRIVATE 
-    $<$<CXX_COMPILER_ID:MSVC>: -D_CRT_SECURE_NO_WARNINGS /Zi /std:c++17 /MT /DEBUG>
+    $<$<CXX_COMPILER_ID:MSVC>: -D_CRT_SECURE_NO_WARNINGS /Zi /std:c++14 /MT /DEBUG>
 ) 
 
 target_link_options(${PROJECT_NAME}
@@ -33,6 +33,8 @@ PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/connection.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/listener.h
     ${CMAKE_CURRENT_SOURCE_DIR}/listener.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/calculator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/calculator.cpp
 )
 
 target_sources(${PROJECT_NAME}
@@ -43,4 +45,6 @@ PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../common/net/select_base_server_engine.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../common/net/newtork_initializer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../common/net/newtork_initializer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/locker/spinlock_mutex.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/locker/spinlock_mutex.cpp
 )

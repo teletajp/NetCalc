@@ -4,7 +4,7 @@
 #include "version.h"
 #include "nc_server.h"
 #include <net/newtork_initializer.h>
-static std::atomic_bool g_stop_program = false;
+static std::atomic_bool g_stop_program;
 #if defined(__linux__) || defined(__APPLE__)
 void sig_int_handler(__attribute__((unused)) int s)
 {

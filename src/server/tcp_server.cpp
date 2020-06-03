@@ -4,6 +4,7 @@
 #include "tcp_server.h"
 #include "connection.h"
 #include "listener.h"
+#include "locker/spinlock_mutex.h"
 #define printNotice(msg) fmt::print(stdout, "[NOTICE] SERVER: {}\n", msg)
 #define printError(msg) fmt::print(stderr, "[ERROR] SERVER: {}\n", msg)
 namespace brct
@@ -17,8 +18,9 @@ public:
     uint16_t port_;
     Listener listener_;
     const std::string info_;
-    std::mutex connection_mtx_;
+    locker::spinlock_mutex connection_mtx_;
     std::map<int, std::unique_ptr<Connection>> all_connections_;
+
 };
 
 TcpServer::Impl::Impl(const std::string &ip, uint16_t port):
@@ -159,13 +161,23 @@ void TcpServer::deleteConnection(int fd)
     {
         auto &connection = find_it->second;
         printNotice("deleteConnection: Close connection " + connection->getInfo());
-        std::lock_guard<std::mutex> lock(pimpl_->connection_mtx_);
+        std::lock_guard<locker::spinlock_mutex> lock(pimpl_->connection_mtx_);
         engine_.delSocket(fd);
         pimpl_->all_connections_.erase(find_it);
     }
 }
 
-void TcpServer::setProcessor(std::function<void (std::vector<uint8_t>&, const std::string &)> &&processor)
+void TcpServer::setProcessor(std::function<bool (Calculator::ExpressionList&)> &&processor)
 {
-    processor_= std::move(processor);};
+    processor_= std::move(processor);
+}
+void TcpServer::send(int fd, std::string&& data)
+{
+    std::lock_guard<locker::spinlock_mutex> lock(pimpl_->connection_mtx_);
+    auto ret = pimpl_->all_connections_.find(fd);
+    if (ret != pimpl_->all_connections_.end())
+    {
+        ret->second->send(data);
+    }
+}
 }

@@ -14,7 +14,6 @@ public:
     };
 private:
     settings_t settings_;
-    TcpServer tcp_server_;
 public:
     NcServer(const settings_t &settings_);
     NcServer(const NcServer&) = delete;
