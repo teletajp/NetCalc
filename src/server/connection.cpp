@@ -67,13 +67,14 @@ Connection::ErrorCode Connection::Impl::receive()
     catch(const std::exception &ex)
     {
         printError(fmt::format("receive EXCEPTION {}", ex.what()));
-        send("Internal server error.");
+        send("Internal server error.\r\n");
     };
     //rtrim
     msg_buf_.erase(std::find_if(msg_buf_.rbegin(), msg_buf_.rend(), [](const char &ch ){return !std::isspace(ch);}).base(), msg_buf_.end());
+    msg_buf_.erase(msg_buf_.begin(), std::find_if(msg_buf_.begin(), msg_buf_.end(), [](const char &ch ){return ch > 39;}));
     if (msg_buf_.size() >= RECV_BUF_SIZE)
     {
-        auto err_msg = fmt::format("Command {}... too big (max len:{}", msg_buf_.substr(16), RECV_BUF_SIZE);
+        auto err_msg = fmt::format("Command {}... too big (max len:{})\r\n", msg_buf_.substr(16), RECV_BUF_SIZE);
         printError(err_msg);
         send(err_msg);
     }
@@ -131,7 +132,7 @@ bool Connection::Impl::parse()
         else
         {
             commands_.clear();
-            send(fmt::format("Invalid symbol {} in command {}", ch, msg_buf_));
+            send(fmt::format("Invalid symbol {}({:#x}) in command {}\r\n", ch, ch, msg_buf_));
             return false;
         }
     }

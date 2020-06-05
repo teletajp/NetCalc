@@ -63,12 +63,12 @@ bool Calculator::calculate(ExpressionList &expression_list)
                  try
                  {
                      int64_t res = calculator::eval<int64_t>(expression.second);
-                     result_expression = fmt::format("{} = {}\n", expression.second, res);
+                     result_expression = fmt::format("{} = {}\r\n", expression.second, res);
                      printNotice(pimpl_->id, result_expression);
                  }
                  catch(const std::exception& e)
                  {
-                     result_expression = fmt::format("{} = EXCEPTION ({})\n", expression.second, e.what());
+                     result_expression = fmt::format("{} = EXCEPTION ({})\r\n", expression.second, e.what());
                      printError(pimpl_->id, result_expression);
                  }
                  if (result_subscriber_)

@@ -52,7 +52,7 @@ int main(int argc, char** argv)
     sigIntHandler.sa_flags = 0;
     sigaction(SIGINT, &sigIntHandler, NULL);
 #elif defined(_WIN32)
-    SystemParametersInfoA(SPI_GETHUNGAPPTIMEOUT, 10000, NULL, 0);
+    //SystemParametersInfoA(SPI_GETHUNGAPPTIMEOUT, 1000, NULL, 0);
     SetConsoleCtrlHandler(CloseHandlerFn, TRUE);
 #endif
     brct::NcServer::settings_t settings;

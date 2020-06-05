@@ -1,4 +1,5 @@
 .vscode/
 build/
 x64-osx/
+x64-windows/
 .DS_Store
