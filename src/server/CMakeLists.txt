@@ -16,6 +16,7 @@ PRIVATE
 target_link_libraries(${PROJECT_NAME}
 PRIVATE
     fmt::fmt
+    $<$<CXX_COMPILER_ID:GNU>:pthread>
 )
 target_include_directories(${PROJECT_NAME}
 PUBLIC
