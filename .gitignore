@@ -1,7 +1,4 @@
 .vscode/
 build/
-x64-osx/
-x64-linux/
-x64-windows/
 .DS_Store
 version.h
