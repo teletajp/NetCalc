@@ -7,6 +7,8 @@
 #include <net/newtork_initializer.h>
 #include <timer/clock.h>
 #include "tcp_connector.h"
+#include <algorithm>
+#include <iterator>
 namespace brct
 {
 constexpr int MSG_BUF_SIZE = 10*1024;
