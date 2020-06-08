@@ -134,9 +134,8 @@ bool TcpClient::Impl::processUserCommand(const std::string &command)
         else
         {
             command_timer.start();
-            auto answer = tcp_connector.send(command_buffer);
+            transmit(tcp_connector.send(command_buffer));
             command_timer.stop();
-            transmit(answer);
             transmit("command time: " + std::to_string(command_timer.seconds()));
         }
         command_buffer.clear();

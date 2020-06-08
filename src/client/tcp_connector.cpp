@@ -93,7 +93,7 @@ std::string TcpConnector::Impl::receive()
         close();
         return "Send data error. Disconnect from server.";
     }
-    return std::string(buffer);
+    return std::string(buffer, ret);
 }
 void TcpConnector::Impl::close()
 {

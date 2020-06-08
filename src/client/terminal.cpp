@@ -9,7 +9,7 @@ namespace brct
 {
 void Terminal::run(const std::atomic_bool &terminate)
 {
-    std::cout << "Terminal NcClient " NC_CLIENT_VERSION << " started." << "\n Ctrl+D for exit&" << std::endl;
+    std::cout << "Terminal NcClient " NC_CLIENT_VERSION << " started." << "\n Ctrl+D/Ctrl+C for exit" << std::endl;
     std::string line;
     while (!terminate)
     {
