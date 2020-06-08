@@ -29,9 +29,9 @@ public:
     std::string info_;
     uint8_t rcv_buf_[RECV_BUF_SIZE];
     std::string msg_buf_;
-    Calculator::ExpressionList commands_;
+    Calculator::Command command_;
     Status status_;
-    std::function<bool (Calculator::ExpressionList &)> processor_;
+    std::function<bool (Calculator::Expression &)> processor_;
 };
 
 Connection::Impl::Impl(int fd, const std::string &info):
@@ -82,7 +82,10 @@ Connection::ErrorCode Connection::Impl::receive()
     {//msg complite
         if (parse())
         {
-            if (processor_ && processor_(commands_)) printNotice("processor return true.");
+            Calculator::Expression expr;
+            expr.first = fd_;
+            expr.second.swap(command_);
+            if (processor_ && processor_(expr)) printNotice("processor return true.");
             else printError("processor return false.");
         }
         msg_buf_.clear();
@@ -122,7 +125,7 @@ bool Connection::Impl::parse()
         if (ch == ',' && !command.empty())
         {
             printNotice(fmt::format("Detect command {}.", command));
-            commands_.emplace_back(fd_,command);
+            command_.emplace_back(command);
             command.clear();
         }
         else if (ch >= '(' && ch <= '9')  command.push_back(ch);
@@ -130,13 +133,13 @@ bool Connection::Impl::parse()
         else if (ch == '=') break;
         else
         {
-            commands_.clear();
+            command_.clear();
             send(fmt::format("Invalid symbol {}({:#x}) in command {}\r\n", ch, ch, msg_buf_));
             return false;
         }
     }
     printNotice(fmt::format("Detect command {}.", command));
-    commands_.emplace_back(fd_, command);
+    command_.emplace_back(command);
     return true;
 }
 Connection::Connection(int fd, const std::string &info):
@@ -165,7 +168,7 @@ const std::string & Connection::getInfo() const
 {
     return pimpl_->info_;
 }
-void Connection::setProcessor(const std::function<bool (Calculator::ExpressionList &)> &processor)
+void Connection::setProcessor(const std::function<bool (Calculator::Expression &)> &processor)
 {
     pimpl_->processor_ = processor;
 }

@@ -18,10 +18,10 @@ public:
     int onWrite(const int fd);
     int onError(const int fd, const std::string &error_message);
     void run(const std::atomic_bool &terminate) override;
-    void setProcessor(std::function<bool (Calculator::ExpressionList&)> &&processor);
+    void setProcessor(std::function<bool (Calculator::Expression&)> &&processor);
     void send(int fd, std::string&& data);
 private:
-    std::function<bool (Calculator::ExpressionList&)>processor_;
+    std::function<bool (Calculator::Expression&)>processor_;
     TcpServer(const TcpServer&) = delete;
     TcpServer(TcpServer&&) = delete;
     TcpServer& operator= (const TcpServer&) = delete;

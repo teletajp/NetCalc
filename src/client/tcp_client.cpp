@@ -128,7 +128,6 @@ bool TcpClient::Impl::processUserCommand(const std::string &command)
                 input_list.emplace_back(command_buffer);
             }
             new_command.notify_one();
-            command_buffer.clear();
         }
         else
         {
@@ -138,6 +137,7 @@ bool TcpClient::Impl::processUserCommand(const std::string &command)
             transmit(answer);
             transmit("command time: " + std::to_string(command_timer.seconds()));
         }
+        command_buffer.clear();
     }
     return true;
 }

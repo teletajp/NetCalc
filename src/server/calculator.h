@@ -9,13 +9,14 @@ namespace brct
 class Calculator:public running::IRunnable
 {
 public:
-    using Expression = std::pair<int,std::string>;
+    using Command = std::list<std::string>;
+    using Expression = std::pair<int,Command>;
     using ExpressionList = std::list<Expression>;
 
     Calculator();
     ~Calculator();
     void setResultSubscriber(std::function<void (int,std::string&&)>&& result_subscriber);
-    bool calculate(ExpressionList &expression_list);
+    bool calculate(Expression &expression);
     void run(const std::atomic_bool &terminate) override;
 private:
     std::function<void (int,std::string&&)> result_subscriber_;

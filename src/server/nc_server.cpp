@@ -11,7 +11,7 @@ void NcServer::run(std::atomic_bool &terminate)
 {
     TcpServer tcp_server(settings_.listen_ip, settings_.listen_port);
     Calculator calculator;
-    std::function<bool (Calculator::ExpressionList&)> cal_processor = std::bind(&Calculator::calculate, &calculator, std::placeholders::_1);
+    std::function<bool (Calculator::Expression&)> cal_processor = std::bind(&Calculator::calculate, &calculator, std::placeholders::_1);
     std::function<void (int, std::string&&)> resuls_sender = std::bind(&TcpServer::send, &tcp_server, std::placeholders::_1, std::placeholders::_2);
     tcp_server.setProcessor(std::move(cal_processor));
     calculator.setResultSubscriber(std::move(resuls_sender));

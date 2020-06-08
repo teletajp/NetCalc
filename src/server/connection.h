@@ -28,7 +28,7 @@ public:
     ErrorCode receive();
     ErrorCode send(const std::string &data);
     const std::string &getInfo() const;
-    void setProcessor(const std::function<bool (Calculator::ExpressionList &)> &processor);
+    void setProcessor(const std::function<bool (Calculator::Expression &)> &processor);
 private:
     class Impl;
     std::unique_ptr<Impl> pimpl_;

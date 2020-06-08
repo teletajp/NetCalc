@@ -14,18 +14,18 @@ public:
     const int id;
     Impl():id(++next_calulator_id){};
     ~Impl() = default;
-    bool calculate(ExpressionList &expression_list);
+    bool calculate(Expression &expression);
     std::mutex exp_mutex;
     ExpressionList work_list;
     ExpressionList input_list;
     std::condition_variable new_data_event;
 };
-bool Calculator::Impl::calculate(ExpressionList &expression_list)
+bool Calculator::Impl::calculate(Expression &expression)
 {
     try
     {
         std::lock_guard<std::mutex> lock(exp_mutex);
-        input_list.splice(input_list.end(), expression_list);
+        input_list.emplace_back(std::move(expression));
     }
     catch(const std::exception ex){return false;}
     new_data_event.notify_one();
@@ -43,9 +43,9 @@ void Calculator::setResultSubscriber(std::function<void (int,std::string&&)>&& r
 {
     result_subscriber_ = std::move(result_subscriber);
 }
-bool Calculator::calculate(ExpressionList &expression_list)
+bool Calculator::calculate(Expression &expression)
 {
-    return pimpl_->calculate(expression_list);
+    return pimpl_->calculate(expression);
 }
  void Calculator::run(const std::atomic_bool &terminate)
  {
@@ -60,17 +60,21 @@ bool Calculator::calculate(ExpressionList &expression_list)
              for (const auto& expression: pimpl_->work_list)
              {
                  std::string result_expression;
-                 try
+                 for (const auto &cmd: expression.second)
                  {
-                     int64_t res = calculator::eval<int64_t>(expression.second);
-                     result_expression = fmt::format("{} = {}\r\n", expression.second, res);
-                     printNotice(pimpl_->id, result_expression);
+                    try
+                    {
+                        int64_t res = calculator::eval<int64_t>(cmd);
+                        result_expression += fmt::format("{} = {}\r\n", cmd, res);
+                        printNotice(pimpl_->id, result_expression);
+                    }
+                    catch(const std::exception& e)
+                    {
+                        result_expression += fmt::format("{} = EXCEPTION ({})\r\n", cmd, e.what());
+                        printError(pimpl_->id, result_expression);
+                    }
                  }
-                 catch(const std::exception& e)
-                 {
-                     result_expression = fmt::format("{} = EXCEPTION ({})\r\n", expression.second, e.what());
-                     printError(pimpl_->id, result_expression);
-                 }
+
                  if (result_subscriber_)
                      result_subscriber_(expression.first, std::move(result_expression));
              }

@@ -167,7 +167,7 @@ void TcpServer::deleteConnection(int fd)
     }
 }
 
-void TcpServer::setProcessor(std::function<bool (Calculator::ExpressionList&)> &&processor)
+void TcpServer::setProcessor(std::function<bool (Calculator::Expression&)> &&processor)
 {
     processor_= std::move(processor);
 }
