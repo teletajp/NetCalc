@@ -72,7 +72,7 @@ Connection::ErrorCode Connection::Impl::receive()
     //rtrim
     msg_buf_.erase(std::find_if(msg_buf_.rbegin(), msg_buf_.rend(), [](const char &ch ){return !std::isspace(ch);}).base(), msg_buf_.end());
     msg_buf_.erase(msg_buf_.begin(), std::find_if(msg_buf_.begin(), msg_buf_.end(), [](const char &ch ){return ch > 39;}));
-    if (msg_buf_.size() >= RECV_BUF_SIZE)
+    if (msg_buf_.size() > RECV_BUF_SIZE)
     {
         auto err_msg = fmt::format("Command {}... too big (max len:{})\r\n", msg_buf_.substr(16), RECV_BUF_SIZE);
         printError(err_msg);
@@ -87,7 +87,6 @@ Connection::ErrorCode Connection::Impl::receive()
         }
         msg_buf_.clear();
     }
-    
     return Connection::ErrorCode::OK;
 }
 Connection::ErrorCode Connection::Impl::send(const std::string &data)

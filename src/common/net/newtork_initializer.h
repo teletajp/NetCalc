@@ -15,7 +15,7 @@
 #include <unistd.h>
 #define SD_BOTH             SHUT_RDWR
 #define WSAEWOULDBLOCK      EINPROGRESS
-#define closesocket         close
+#define closesocket         ::close
 #define INVALID_SOCKET     (~0)
 #define PVOID void*
 #endif

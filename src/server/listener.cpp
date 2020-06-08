@@ -22,7 +22,7 @@ is_blocked_(is_blocked)
     int domain = AF_INET;
     int socket_type = SOCK_STREAM;
     int proto = IPPROTO_TCP;
-    if (inet_pton(domain, ip.c_str(), &(sa_.sin_addr)) == 1)
+    if (inet_pton(domain, ip.c_str(), &(sa_.sin_addr)) != 1)
     {
         ip = "0.0.0.0";
         inet_pton(domain, ip.c_str(), &(sa_.sin_addr));

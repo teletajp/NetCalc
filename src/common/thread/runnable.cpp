@@ -6,13 +6,13 @@ class AutoThread::Impl
 {
     RunnablePtr runnable_object_;
 public:
-    Impl(RunnablePtr&& runnable_object):runnable_object_(std::move(runnable_object)), raw_object_pointer_(runnable_object_.get()), terminated_(false)
+    Impl(RunnablePtr&& runnable_object, bool auto_restart):runnable_object_(std::move(runnable_object)), raw_object_pointer_(runnable_object_.get()), terminated_(false)
     {
-        thread = std::thread(&AutoThread::Impl::run, this, raw_object_pointer_);
+        thread = std::thread(&AutoThread::Impl::run, this, raw_object_pointer_, auto_restart);
     }
-    Impl(IRunnable * runnable_object):runnable_object_(), raw_object_pointer_(runnable_object), terminated_(false)
+    Impl(IRunnable * runnable_object, bool auto_restart):runnable_object_(), raw_object_pointer_(runnable_object), terminated_(false)
     {
-        thread = std::thread(&AutoThread::Impl::run, this, raw_object_pointer_);
+        thread = std::thread(&AutoThread::Impl::run, this, raw_object_pointer_, auto_restart);
     }
     ~Impl()
     {
@@ -26,11 +26,11 @@ public:
         }
     }
 
-    static void run(Impl *thread, IRunnable* runnable_object)
+    static void run(Impl *thread, IRunnable* runnable_object, bool auto_restart)
     {
         try
         {
-            Impl::runner(thread, runnable_object);
+            Impl::runner(thread, runnable_object, auto_restart);
         }
         catch (...)
         {
@@ -38,13 +38,14 @@ public:
         thread->terminated_ = true;
     }
 
-    static void runner(Impl * thread, IRunnable* runnable_object)
+    static void runner(Impl * thread, IRunnable* runnable_object, bool auto_restart)
     {
-        while (!thread->terminated_)
+        do
         {
             runnable_object->run(thread->terminated_);
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
+        while (!thread->terminated_ && auto_restart);
     }
 
     IRunnable*  raw_object_pointer_;
@@ -53,13 +54,13 @@ public:
 };
 
 
-AutoThread::AutoThread(RunnablePtr&& runnable_object):
-pimpl_(std::make_unique<Impl>(std::move(runnable_object)))
+AutoThread::AutoThread(RunnablePtr&& runnable_object, bool auto_restart):
+pimpl_(std::make_unique<Impl>(std::move(runnable_object), auto_restart))
 {
 
 }
-AutoThread::AutoThread(IRunnable * runnable_object):
-pimpl_(std::make_unique<Impl>(runnable_object))
+AutoThread::AutoThread(IRunnable * runnable_object, bool auto_restart):
+pimpl_(std::make_unique<Impl>(runnable_object, auto_restart))
 {
 }
 AutoThread::~AutoThread()

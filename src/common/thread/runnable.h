@@ -16,8 +16,8 @@ using RunnablePtr = std::unique_ptr<IRunnable>;
 class AutoThread
 {
 public:
-    AutoThread(RunnablePtr&& runnable_object);
-    AutoThread(IRunnable* runnable_object);
+    AutoThread(RunnablePtr&& runnable_object, bool auto_restart = false);
+    AutoThread(IRunnable* runnable_object, bool auto_restart = false);
     ~AutoThread();
     bool terminated() const;
     void terminate();
