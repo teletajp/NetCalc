@@ -1,2 +1,2 @@
 #pragma once
-#define UCS_VERSION "@PROJECT_VERSION@"
+#define NC_CLIENT_VERSION "@PROJECT_VERSION@"
